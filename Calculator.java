@@ -1,5 +1,6 @@
 package calculator;
 
+import javax.swing.plaf.IconUIResource;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ public class Calculator {
     private final String VARIABLE = "[A-Za-z]+\\s*";
     private final String LOWER_EXPRESSIONS = "(\\++|-+)";
     private final String HIGHER_EXPRESSIONS = "(/|\\*)";
+    private final String PARENTHESIS_EXPRESSIONS = "(\\(|\\))";
     private final String ASSIGNMENT = "=\\s*";
     private final String NUMBER_OR_VARIABLE;
     private final Pattern VARIABLE_PATTERN;
@@ -34,9 +36,11 @@ public class Calculator {
         NUMBER_PATTERN = Pattern.compile(SIGNED_DIGIT);
         VARIABLE_OR_NUMBER_PATTERN = Pattern.compile(NUMBER_OR_VARIABLE);
 
-        String EXPRESSIONS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + ")";
+        String EXPRESSIONS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
         EXPRESSIONS_PATTERN = Pattern.compile(EXPRESSIONS);
-        HIGHER_EXPRESSIONS_PATTERN = Pattern.compile(HIGHER_EXPRESSIONS);
+        String HIGHER_EXPRESSIONS_PARENTHESIS = "(" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
+        // create the highest expression pattern with ( )
+        HIGHER_EXPRESSIONS_PATTERN = Pattern.compile(HIGHER_EXPRESSIONS_PARENTHESIS);
         LOWER_EXPRESSIONS_PATTERN = Pattern.compile(LOWER_EXPRESSIONS);
 
         variableStore = new HashMap<>();
@@ -69,22 +73,32 @@ public class Calculator {
             if (valueMatch.matches()) {
                 postFixEquation.offerLast(token); // add number or variable to result
             } else if (expressionMatch.matches()) {
-                if (stack.size() > 0 && lowerPrecedenceNewOperator(stack.peekLast(), token)) {
+                String topStackItem = stack.peekLast();
+                if (topStackItem != null && topStackItem.equals(")")) {
+                    while (!stack.peekLast().equals("(")) {
+                        postFixEquation.offerLast(stack.pollLast());
+                    }
+                    stack.pollLast();  // remove left parenthesis
+                    continue; // don't add right parenthesis to postFixEquation
+                }
+
+                if (stack.size() > 0 && !higherPrecedenceNewOperator(topStackItem, token) && !"(".equals(topStackItem)) {
                     while (stack.size() > 0) {
-                        String oldExpression = stack.pollLast(); // is this right?
-                        if (lowerPrecedenceNewOperator(oldExpression, token)) {
-                            postFixEquation.offerLast(oldExpression); // put the old operator back on the stack
+                        //String oldExpression = topStackItem;
+                        if (!lowerPrecedenceNewOperator(topStackItem, token)) {
+                            postFixEquation.offerLast(stack.pollLast());
                             break;
                         } else {
-                            postFixEquation.addLast(stack.pollLast());
+                            postFixEquation.offerLast(stack.pollLast());
                         }
                     }
-                    // String oldExpression = stack.pollLast();
-                    // postFixEquation.offerLast(oldExpression);
                 }
                 stack.addLast(token);
+                System.out.println("Stack is " + stack);
+                System.out.println("postfix is " + postFixEquation);
             }
         }
+        System.out.println("Stack at the end loop" + stack);
         while (stack.size() > 0) {
             postFixEquation.addLast(stack.pollLast());
         }
