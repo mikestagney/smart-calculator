@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 public class Calculator {
 
-    private final String SIGNED_DIGIT = "\\d+\\s*";  //  SIGNED_DIGIT = "[+-]?\\d+\\s*";
+    private final String SIGNED_DIGIT = "[+-]?\\d+\\s*";  //  SIGNED_DIGIT = "[+-]?\\d+\\s*";
     private final String VARIABLE = "[A-Za-z]+\\s*";
     private final String LOWER_EXPRESSIONS = "(\\++|-+)";
     private final String HIGHER_EXPRESSIONS = "(/|\\*)";
@@ -67,8 +67,10 @@ public class Calculator {
                         .replaceAll("(\\+)\\1{2,}", "+");
 
         System.out.println(holder);
-        String[] operands = holder.split(EXPRESSIONS);
-        String[] operators = holder.split(NUMBER_OR_VARIABLE);
+        String[] operands = holder.split(EXPRESSIONS + "+");
+        String VARIABLE_OR_DIGIT = "(" + "\\d+" + "|" + VARIABLE + ")";
+        holder = holder.replaceAll(VARIABLE_OR_DIGIT, "");
+        char[] operators = holder.toCharArray();
 
         System.out.println(Arrays.toString(operands));
         System.out.println(Arrays.toString(operators));
