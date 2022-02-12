@@ -69,14 +69,34 @@ public class Calculator {
         System.out.println(holder);
         String[] operands = holder.split(EXPRESSIONS + "+");
         String VARIABLE_OR_DIGIT = "(" + "\\d+" + "|" + VARIABLE + ")";
-        holder = holder.replaceAll(VARIABLE_OR_DIGIT, "");
-        char[] operators = holder.toCharArray();
+
+        String charHolder = holder.replaceAll(VARIABLE_OR_DIGIT, "");
+        char[] operators = charHolder.toCharArray();
 
         System.out.println(Arrays.toString(operands));
         System.out.println(Arrays.toString(operators));
         String[] equation = new String[operators.length + operands.length];
 
         // need to figure out loop to build array
+        int operatorCounter = 0;
+        int operandCounter = 0;
+        int equationCounter = 0;
+
+        for (int i = 0; i < holder.length(); i++) {
+            System.out.println(holder.charAt(i) + " " + operands[operandCounter].charAt(0) + " " + operators[operatorCounter]);
+            if (operandCounter <= operands.length - 1 && holder.charAt(i) == operands[operandCounter].charAt(0)) {
+                equation[equationCounter] = operands[operandCounter];
+                equationCounter++;
+                operandCounter++;
+            } else if (operatorCounter <= operators.length - 1 && holder.charAt(i) == operators[operatorCounter]) {
+                equation[equationCounter] = Character.toString(operators[operatorCounter]);
+                equationCounter++;
+                operatorCounter++;
+            }
+            System.out.println(Arrays.toString(equation));
+            System.out.println();
+        }
+
 
 
         System.out.println(Arrays.toString(equation));
