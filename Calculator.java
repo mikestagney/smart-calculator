@@ -1,20 +1,17 @@
 package calculator;
 
-import javax.swing.plaf.IconUIResource;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Calculator {
 
-    private final String SIGNED_DIGIT = "[+-]?\\d+\\s*";
+    private final String SIGNED_DIGIT = "\\d+\\s*";  //  SIGNED_DIGIT = "[+-]?\\d+\\s*";
     private final String VARIABLE = "[A-Za-z]+\\s*";
     private final String LOWER_EXPRESSIONS = "(\\++|-+)";
     private final String HIGHER_EXPRESSIONS = "(/|\\*)";
     private final String PARENTHESIS_EXPRESSIONS = "(\\(|\\))";
+    private final String EXPRESSIONS;
     private final String ASSIGNMENT = "=\\s*";
     private final String NUMBER_OR_VARIABLE;
     private final Pattern VARIABLE_PATTERN;
@@ -36,7 +33,7 @@ public class Calculator {
         NUMBER_PATTERN = Pattern.compile(SIGNED_DIGIT);
         VARIABLE_OR_NUMBER_PATTERN = Pattern.compile(NUMBER_OR_VARIABLE);
 
-        String EXPRESSIONS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
+        EXPRESSIONS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
         EXPRESSIONS_PATTERN = Pattern.compile(EXPRESSIONS);
         String HIGHER_EXPRESSIONS_PARENTHESIS = "(" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
         // create the highest expression pattern with ( )
@@ -62,29 +59,63 @@ public class Calculator {
           //  handleError(userInput);
         // }
     }
+    private String[] parseUserInput(String userInput) {
+        String holder = userInput
+                        .replaceAll(" ", "")
+                        .replaceAll("(\\+)\\1{2,}", "+")
+                        .replaceAll("--", "+")
+                        .replaceAll("(\\+)\\1{2,}", "+");
+
+        System.out.println(holder);
+        String[] operands = holder.split(EXPRESSIONS);
+        String[] operators = holder.split(NUMBER_OR_VARIABLE);
+
+        System.out.println(Arrays.toString(operands));
+        System.out.println(Arrays.toString(operators));
+        String[] equation = new String[operators.length + operands.length];
+
+        // need to figure out loop to build array
+
+
+        System.out.println(Arrays.toString(equation));
+
+        // just for testing this method
+        System.exit(0);
+
+        return equation;
+    }
+
+
     private void postFixConverter(String userInput) {
-        String[] equation = userInput.split("\\s+");
+
+
+        // String[] equation = userInput.split("\\s+");
+        String[] equation = parseUserInput(userInput);
+        // System.out.println(Arrays.toString(equation));
+
+
         postFixEquation = new ArrayDeque<>();
         Deque<String> stack = new ArrayDeque<>();
 
         for (String token: equation) {
+            // System.out.println("token is " + token);
             Matcher valueMatch = VARIABLE_OR_NUMBER_PATTERN.matcher(token);
             Matcher expressionMatch = EXPRESSIONS_PATTERN.matcher(token);
             if (valueMatch.matches()) {
                 postFixEquation.offerLast(token); // add number or variable to result
             } else if (expressionMatch.matches()) {
                 String topStackItem = stack.peekLast();
-                if (topStackItem != null && topStackItem.equals(")")) {
-                    while (!stack.peekLast().equals("(")) {
+                if (topStackItem != null && token.equals(")")) {
+                    while (stack.peekLast() != null && !stack.peekLast().equals("(")) {
                         postFixEquation.offerLast(stack.pollLast());
                     }
-                    stack.pollLast();  // remove left parenthesis
-                    continue; // don't add right parenthesis to postFixEquation
+                    String junk = stack.pollLast();  // remove left parenthesis from stack and discard
+                    // System.out.println("top of stack " + junk + " and the token is " + token);
+                    continue; // right parenthesis is the token, so don't add it to postFixEquation
                 }
 
                 if (stack.size() > 0 && !higherPrecedenceNewOperator(topStackItem, token) && !"(".equals(topStackItem)) {
-                    while (stack.size() > 0) {
-                        //String oldExpression = topStackItem;
+                    while (stack.size() > 0 && !stack.peekLast().equals("(")) {
                         if (!lowerPrecedenceNewOperator(topStackItem, token)) {
                             postFixEquation.offerLast(stack.pollLast());
                             break;
@@ -94,28 +125,50 @@ public class Calculator {
                     }
                 }
                 stack.addLast(token);
-                System.out.println("Stack is " + stack);
-                System.out.println("postfix is " + postFixEquation);
+
             }
+            /*
+            System.out.println("Stack is " + stack);
+            System.out.println("postfix is " + postFixEquation);
+            System.out.println();*/
         }
-        System.out.println("Stack at the end loop" + stack);
+        // System.out.println("Stack at the end loop" + stack);
         while (stack.size() > 0) {
             postFixEquation.addLast(stack.pollLast());
         }
 
         System.out.println(postFixEquation);
+
     }
 
     private boolean higherPrecedenceNewOperator(String oldOperator, String newOperator) {
-        Matcher higherMatch  = HIGHER_EXPRESSIONS_PATTERN.matcher(newOperator);
-        Matcher lowerMatch = LOWER_EXPRESSIONS_PATTERN.matcher(oldOperator);
-        return higherMatch.matches() && lowerMatch.matches();
+        int oldValue = getPrecedenceValue(oldOperator);
+        int newValue = getPrecedenceValue(newOperator);
+        return oldValue < newValue;
+
     }
-    // is this needed? Or can I just use higher Precedence check?
     private boolean lowerPrecedenceNewOperator(String oldOperator, String newOperator) {
-        Matcher higherMatch  = HIGHER_EXPRESSIONS_PATTERN.matcher(oldOperator);
-        Matcher lowerMatch = LOWER_EXPRESSIONS_PATTERN.matcher(newOperator);
-        return higherMatch.matches() && lowerMatch.matches();
+        int oldValue = getPrecedenceValue(oldOperator);
+        int newValue = getPrecedenceValue(newOperator);
+        return oldValue > newValue;
+    }
+    private int getPrecedenceValue(String operator) {
+        int precedence = -1;
+        switch (operator) {
+            case "(":
+            case ")":
+                precedence = 3;
+                break;
+            case "*":
+            case "/":
+                precedence = 2;
+                break;
+            case "+":
+            case "-":
+                precedence = 1;
+
+        }
+        return precedence;
     }
 
 
