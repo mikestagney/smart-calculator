@@ -77,13 +77,11 @@ public class Calculator {
         System.out.println(Arrays.toString(operators));
         String[] equation = new String[operators.length + operands.length];
 
-        // need to figure out loop to build array
         int operatorCounter = 0;
         int operandCounter = 0;
         int equationCounter = 0;
 
         for (int i = 0; i < holder.length(); i++) {
-            System.out.println(holder.charAt(i) + " " + operands[operandCounter].charAt(0) + " " + operators[operatorCounter]);
             if (operandCounter <= operands.length - 1 && holder.charAt(i) == operands[operandCounter].charAt(0)) {
                 equation[equationCounter] = operands[operandCounter];
                 equationCounter++;
