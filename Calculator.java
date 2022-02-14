@@ -3,6 +3,7 @@ package calculator;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Calculator {
 
@@ -67,17 +68,16 @@ public class Calculator {
                         .replaceAll("(\\+)\\1{2,}", "+");
 
         System.out.println(holder);
+
         String[] operandsHolder = holder.split(EXPRESSIONS + "+");
-
-        Object[] operands = Arrays.stream(operandsHolder)
-                .filter(e -> {
-                    Pattern digits = Pattern.compile("\\d+");
-                    Matcher matcher = digits.matcher(e);
-                    return matcher.matches();
-                })
-                .toArray();
-
         String VARIABLE_OR_DIGIT = "(" + "\\d+" + "|" + VARIABLE + ")";
+        String[] operands = Arrays.stream(operandsHolder)
+                .filter(e -> {
+                    Pattern digits = Pattern.compile(VARIABLE_OR_DIGIT);
+                    Matcher matcher = digits.matcher(e);
+                    return matcher.matches();})
+                .toArray(String[]::new);
+
         String charHolder = holder.replaceAll(VARIABLE_OR_DIGIT, "");
         char[] operators = charHolder.toCharArray();
 
@@ -88,9 +88,8 @@ public class Calculator {
         int operatorCounter = 0;
         int operandCounter = 0;
         int equationCounter = 0;
-        /*
+
         for (int i = 0; i < holder.length(); i++) {
-            System.out.println("i is " + i);
             if (operandCounter <= operands.length - 1 && holder.charAt(i) == operands[operandCounter].charAt(0)) {
                 equation[equationCounter] = operands[operandCounter];
                 equationCounter++;
@@ -100,28 +99,17 @@ public class Calculator {
                 equationCounter++;
                 operatorCounter++;
             }
-            System.out.println(Arrays.toString(equation));
-            System.out.println();
         }
-        */
-
-
         System.out.println(Arrays.toString(equation));
 
-        // just for testing this method
-        System.exit(0);
+
 
         return equation;
     }
 
 
     private void postFixConverter(String userInput) {
-
-
-        // String[] equation = userInput.split("\\s+");
         String[] equation = parseUserInput(userInput);
-        // System.out.println(Arrays.toString(equation));
-
 
         postFixEquation = new ArrayDeque<>();
         Deque<String> stack = new ArrayDeque<>();
