@@ -101,9 +101,6 @@ public class Calculator {
             }
         }
         System.out.println(Arrays.toString(equation));
-
-
-
         return equation;
     }
 
@@ -115,7 +112,6 @@ public class Calculator {
         Deque<String> stack = new ArrayDeque<>();
 
         for (String token: equation) {
-            // System.out.println("token is " + token);
             Matcher valueMatch = VARIABLE_OR_NUMBER_PATTERN.matcher(token);
             Matcher expressionMatch = EXPRESSIONS_PATTERN.matcher(token);
             if (valueMatch.matches()) {
@@ -126,11 +122,9 @@ public class Calculator {
                     while (stack.peekLast() != null && !stack.peekLast().equals("(")) {
                         postFixEquation.offerLast(stack.pollLast());
                     }
-                    String junk = stack.pollLast();  // remove left parenthesis from stack and discard
-                    // System.out.println("top of stack " + junk + " and the token is " + token);
+                    stack.pollLast();  // remove left parenthesis from stack and discard
                     continue; // right parenthesis is the token, so don't add it to postFixEquation
                 }
-
                 if (stack.size() > 0 && !higherPrecedenceNewOperator(topStackItem, token) && !"(".equals(topStackItem)) {
                     while (stack.size() > 0 && !stack.peekLast().equals("(")) {
                         if (!lowerPrecedenceNewOperator(topStackItem, token)) {
@@ -142,18 +136,11 @@ public class Calculator {
                     }
                 }
                 stack.addLast(token);
-
             }
-            /*
-            System.out.println("Stack is " + stack);
-            System.out.println("postfix is " + postFixEquation);
-            System.out.println();*/
         }
-        // System.out.println("Stack at the end loop" + stack);
         while (stack.size() > 0) {
             postFixEquation.addLast(stack.pollLast());
         }
-
         System.out.println(postFixEquation);
 
     }
@@ -187,7 +174,19 @@ public class Calculator {
         }
         return precedence;
     }
+    private void evaluatePostFixEquation() {
+        Deque<String> stack = new ArrayDeque<>();
 
+        while (!postFixEquation.isEmpty()) {
+            String token = postFixEquation.pollFirst();
+            // if variable or number, get value, push on stack
+            // if operator, pop stack twice and preform operation, push result on stack
+
+
+
+        }
+
+    }
 
     private void parseEquation(String userInput) {
         String[] equation = userInput.split("\\s+");
