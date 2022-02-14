@@ -67,9 +67,17 @@ public class Calculator {
                         .replaceAll("(\\+)\\1{2,}", "+");
 
         System.out.println(holder);
-        String[] operands = holder.split(EXPRESSIONS + "+");
-        String VARIABLE_OR_DIGIT = "(" + "\\d+" + "|" + VARIABLE + ")";
+        String[] operandsHolder = holder.split(EXPRESSIONS + "+");
 
+        Object[] operands = Arrays.stream(operandsHolder)
+                .filter(e -> {
+                    Pattern digits = Pattern.compile("\\d+");
+                    Matcher matcher = digits.matcher(e);
+                    return matcher.matches();
+                })
+                .toArray();
+
+        String VARIABLE_OR_DIGIT = "(" + "\\d+" + "|" + VARIABLE + ")";
         String charHolder = holder.replaceAll(VARIABLE_OR_DIGIT, "");
         char[] operators = charHolder.toCharArray();
 
@@ -80,8 +88,9 @@ public class Calculator {
         int operatorCounter = 0;
         int operandCounter = 0;
         int equationCounter = 0;
-
+        /*
         for (int i = 0; i < holder.length(); i++) {
+            System.out.println("i is " + i);
             if (operandCounter <= operands.length - 1 && holder.charAt(i) == operands[operandCounter].charAt(0)) {
                 equation[equationCounter] = operands[operandCounter];
                 equationCounter++;
@@ -94,7 +103,7 @@ public class Calculator {
             System.out.println(Arrays.toString(equation));
             System.out.println();
         }
-
+        */
 
 
         System.out.println(Arrays.toString(equation));
