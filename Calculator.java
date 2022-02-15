@@ -3,7 +3,6 @@ package calculator;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Calculator {
 
@@ -45,6 +44,7 @@ public class Calculator {
     }
 
     public void validateInput(String userInput) {
+        Integer currentResult = null;
         if (userInput.charAt(0) == '/') {
             System.out.println("Unknown command");
             return;
@@ -55,11 +55,13 @@ public class Calculator {
             addVariable(userInput);
         } else {
            postFixConverter(userInput);
-           evaluatePostFixEquation();
+           currentResult = evaluatePostFixEquation();
         }
-        //else {
-          //  handleError(userInput);
-        // }
+        if (currentResult != null) {
+            System.out.println(currentResult);
+        } else {
+            handleError(userInput);
+        }
     }
     private String[] parseUserInput(String userInput) {
         String holder = userInput
@@ -175,7 +177,8 @@ public class Calculator {
         }
         return precedence;
     }
-    private void evaluatePostFixEquation() {
+    private Integer evaluatePostFixEquation() {
+        Integer finalResult = null;
         Deque<Integer> stack = new ArrayDeque<>();
 
         while (!postFixEquation.isEmpty()) {
@@ -184,17 +187,27 @@ public class Calculator {
             Matcher matchOperator = EXPRESSIONS_NO_PARENTTHESIS_PATTERN.matcher(token);
 
             // if variable or number, get value, push on stack
+            Integer currentResult = null;
             if (matchNumberVariable.matches()) {
-                Integer value = getValue(token);
-                stack.offerLast(value);
+                currentResult = getValue(token);
             } else if (matchOperator.matches()) {
-                Integer secondOperand = stack.pollLast();
-                Integer firstOperand = stack.pollLast();
-                Integer result = performOperation(firstOperand, secondOperand, token);
-                stack.offerLast(result);
+                try {
+                    Integer secondOperand = stack.pollLast();
+                    Integer firstOperand = stack.pollLast();
+                    currentResult = performOperation(firstOperand, secondOperand, token);
+                } catch (Exception e) {
+                    return null;
+                }
+            }
+            if (currentResult != null) {
+                stack.offerLast(currentResult);
+            } else {
+                return null;
             }
         }
-        System.out.println(stack.peekLast());
+        finalResult = stack.pollLast();
+        System.out.println(finalResult);
+        return finalResult;
     }
     private Integer performOperation(Integer op1, Integer op2, String operator) {
         Integer result = null;
@@ -214,7 +227,6 @@ public class Calculator {
                     break;
             }
         } catch (Exception ignored) {
-
         }
         return result;
     }
