@@ -28,7 +28,7 @@ public class Calculator {
     Calculator() {
         NUMBER_OR_VARIABLE = "(" + SIGNED_DIGIT + "|" + VARIABLE + ")";
         //EQUATION_PATTERN = Pattern.compile(NUMBER_OR_VARIABLE + "(" + EXPRESSIONS + NUMBER_OR_VARIABLE + ")*");
-        VARIABLE_ASSIGNMENT_PATTERN = Pattern.compile(VARIABLE + ASSIGNMENT + NUMBER_OR_VARIABLE);
+        VARIABLE_ASSIGNMENT_PATTERN = Pattern.compile("\\s*" + VARIABLE + ASSIGNMENT + NUMBER_OR_VARIABLE);
 
         VARIABLE_PATTERN = Pattern.compile(VARIABLE);
         NUMBER_PATTERN = Pattern.compile(SIGNED_DIGIT);
@@ -67,12 +67,12 @@ public class Calculator {
     private String[] parseUserInput(String userInput) {
         String holder = userInput
                         .replaceAll(" ", "")
-                        .replaceAll("(\\+)\\1{2,}", "+")
+                        .replaceAll("(\\+){2,}", "+")  //  .replaceAll("(\\+)\\1{2,}", "+")
                         .replaceAll("--", "+")
                         .replaceAll("\\+-|-\\+", "-")
-                        .replaceAll("(\\+)\\1{2,}", "+");
+                        .replaceAll("(\\+){2,}", "+");
 
-        System.out.println(holder);
+        //System.out.println(holder);
 
         String[] operandsHolder = holder.split(EXPRESSIONS + "+");
         String VARIABLE_OR_DIGIT = "(" + "\\d+" + "|" + VARIABLE + ")";
@@ -105,7 +105,7 @@ public class Calculator {
                 operatorCounter++;
             }
         }
-        System.out.println(Arrays.toString(equation));
+        //System.out.println(Arrays.toString(equation));
         return equation;
     }
 
@@ -127,8 +127,16 @@ public class Calculator {
                     while (stack.peekLast() != null && !stack.peekLast().equals("(")) {
                         postFixEquation.offerLast(stack.pollLast());
                     }
-                    stack.pollLast();  // remove left parenthesis from stack and discard
-                    continue; // right parenthesis is the token, so don't add it to postFixEquation
+                    if (stack.peekLast() != null && stack.peekLast().equals("(")) {
+                        // remove left parenthesis from stack and discard
+                        stack.pollLast();
+                        continue; // right parenthesis is the token, so don't add it to postFixEquation
+                    } else {
+                        postFixEquation.offerLast("(");
+                        stack.clear();
+                        break;
+                    }
+
                 }
                 if (stack.size() > 0 && !higherPrecedenceNewOperator(topStackItem, token) && !"(".equals(topStackItem)) {
                     while (stack.size() > 0 && !stack.peekLast().equals("(")) {
@@ -274,7 +282,9 @@ public class Calculator {
         }
 
     private void addVariable(String userInput) {
-        userInput = userInput.replace('=', ' ');
+        userInput = userInput
+                .replaceAll("\\s+", "")
+                .replace('=', ' ');
         String[] assignment = userInput.split("\\s+");
         String key = assignment[0];
         Integer value = getValue(assignment[assignment.length - 1]);
