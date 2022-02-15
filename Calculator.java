@@ -19,11 +19,12 @@ public class Calculator {
     private final Pattern NUMBER_PATTERN;
     private final Pattern VARIABLE_OR_NUMBER_PATTERN;
     private final Pattern EXPRESSIONS_PATTERN;
-    private final Pattern HIGHER_EXPRESSIONS_PATTERN;
-    private final Pattern LOWER_EXPRESSIONS_PATTERN;
+    private final Pattern EXPRESSIONS_NO_PARENTTHESIS_PATTERN;
+    // private final Pattern LOWER_EXPRESSIONS_PATTERN;
     private final Pattern VARIABLE_ASSIGNMENT_PATTERN;
     private Map<String, Integer> variableStore;
     private Deque<String> postFixEquation;
+
 
     Calculator() {
         NUMBER_OR_VARIABLE = "(" + SIGNED_DIGIT + "|" + VARIABLE + ")";
@@ -36,10 +37,9 @@ public class Calculator {
 
         EXPRESSIONS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
         EXPRESSIONS_PATTERN = Pattern.compile(EXPRESSIONS);
-        String HIGHER_EXPRESSIONS_PARENTHESIS = "(" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
-        // create the highest expression pattern with ( )
-        HIGHER_EXPRESSIONS_PATTERN = Pattern.compile(HIGHER_EXPRESSIONS_PARENTHESIS);
-        LOWER_EXPRESSIONS_PATTERN = Pattern.compile(LOWER_EXPRESSIONS);
+        String EXPRESSIONS_NO_PARENTHESIS = "(" + HIGHER_EXPRESSIONS + "|" + LOWER_EXPRESSIONS + ")";
+        EXPRESSIONS_NO_PARENTTHESIS_PATTERN = Pattern.compile(EXPRESSIONS_NO_PARENTHESIS);
+        //LOWER_EXPRESSIONS_PATTERN = Pattern.compile(LOWER_EXPRESSIONS);
 
         variableStore = new HashMap<>();
     }
@@ -55,6 +55,7 @@ public class Calculator {
             addVariable(userInput);
         } else {
            postFixConverter(userInput);
+           evaluatePostFixEquation();
         }
         //else {
           //  handleError(userInput);
@@ -175,18 +176,49 @@ public class Calculator {
         return precedence;
     }
     private void evaluatePostFixEquation() {
-        Deque<String> stack = new ArrayDeque<>();
+        Deque<Integer> stack = new ArrayDeque<>();
 
         while (!postFixEquation.isEmpty()) {
             String token = postFixEquation.pollFirst();
+            Matcher matchNumberVariable = VARIABLE_OR_NUMBER_PATTERN.matcher(token);
+            Matcher matchOperator = EXPRESSIONS_NO_PARENTTHESIS_PATTERN.matcher(token);
+
             // if variable or number, get value, push on stack
-            // if operator, pop stack twice and preform operation, push result on stack
-
-
+            if (matchNumberVariable.matches()) {
+                Integer value = getValue(token);
+                stack.offerLast(value);
+            } else if (matchOperator.matches()) {
+                Integer secondOperand = stack.pollLast();
+                Integer firstOperand = stack.pollLast();
+                Integer result = performOperation(firstOperand, secondOperand, token);
+                stack.offerLast(result);
+            }
+        }
+        System.out.println(stack.peekLast());
+    }
+    private Integer performOperation(Integer op1, Integer op2, String operator) {
+        Integer result = null;
+        try {
+            switch (operator) {
+                case "+":
+                    result = op1 + op2;
+                    break;
+                case "-":
+                    result = op1 - op2;
+                    break;
+                case "*":
+                    result = op1 * op2;
+                    break;
+                case "/":
+                    result = op1 / op2;
+                    break;
+            }
+        } catch (Exception ignored) {
 
         }
-
+        return result;
     }
+
 
     private void parseEquation(String userInput) {
         String[] equation = userInput.split("\\s+");
