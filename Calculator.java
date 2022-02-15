@@ -56,11 +56,12 @@ public class Calculator {
         } else {
            postFixConverter(userInput);
            currentResult = evaluatePostFixEquation();
-        }
-        if (currentResult != null) {
+
+            if (currentResult != null) {
             System.out.println(currentResult);
         } else {
             handleError(userInput);
+            }
         }
     }
     private String[] parseUserInput(String userInput) {
@@ -68,6 +69,7 @@ public class Calculator {
                         .replaceAll(" ", "")
                         .replaceAll("(\\+)\\1{2,}", "+")
                         .replaceAll("--", "+")
+                        .replaceAll("\\+-|-\\+", "-")
                         .replaceAll("(\\+)\\1{2,}", "+");
 
         System.out.println(holder);
@@ -84,8 +86,8 @@ public class Calculator {
         String charHolder = holder.replaceAll(VARIABLE_OR_DIGIT, "");
         char[] operators = charHolder.toCharArray();
 
-        System.out.println(Arrays.toString(operands));
-        System.out.println(Arrays.toString(operators));
+        // System.out.println(Arrays.toString(operands));
+        // System.out.println(Arrays.toString(operators));
         String[] equation = new String[operators.length + operands.length];
 
         int operatorCounter = 0;
@@ -144,7 +146,7 @@ public class Calculator {
         while (stack.size() > 0) {
             postFixEquation.addLast(stack.pollLast());
         }
-        System.out.println(postFixEquation);
+        // System.out.println(postFixEquation);
 
     }
 
@@ -178,7 +180,11 @@ public class Calculator {
         return precedence;
     }
     private Integer evaluatePostFixEquation() {
-        Integer finalResult = null;
+        if (postFixEquation.contains("(")) {
+            return null;
+        }
+
+        Integer finalResult;
         Deque<Integer> stack = new ArrayDeque<>();
 
         while (!postFixEquation.isEmpty()) {
@@ -206,9 +212,10 @@ public class Calculator {
             }
         }
         finalResult = stack.pollLast();
-        System.out.println(finalResult);
+        // System.out.println(finalResult);
         return finalResult;
     }
+
     private Integer performOperation(Integer op1, Integer op2, String operator) {
         Integer result = null;
         try {
@@ -230,7 +237,6 @@ public class Calculator {
         }
         return result;
     }
-
 
     private void parseEquation(String userInput) {
         String[] equation = userInput.split("\\s+");
