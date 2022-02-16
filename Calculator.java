@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 public class Calculator {
 
-    private final String SIGNED_DIGIT = "[+-]?\\d+\\s*";
+    private final String SIGNED_NUMBER = "[+-]?\\d+\\s*";
     private final String VARIABLE = "[A-Za-z]+\\s*";
     private final String LOWER_EXPRESSIONS = "(\\++|-+)";
     private final String HIGHER_EXPRESSIONS = "(/|\\*)";
@@ -14,28 +14,33 @@ public class Calculator {
     private final String EXPRESSIONS;
     private final String ASSIGNMENT = "=\\s*";
     private final String SIGNED_NUMBER_OR_VARIABLE;
+    private final String UNSIGNED_NUMBER_OR_VARIABLE;
     private final Pattern VARIABLE_PATTERN;
     private final Pattern SIGNED_NUMBER_PATTERN;
-    private final Pattern VARIABLE_OR_SIGNED_NUMBER_PATTERN;
+    private final Pattern SIGNED_NUMBER_OR_VARIABLE_PATTERN;
+    private final Pattern UNSIGNED_NUMBER_OR_VARIABLE_PATTERN;
     private final Pattern EXPRESSIONS_PATTERN;
     private final Pattern EXPRESSIONS_NO_PARENTHESES_PATTERN;
     private final Pattern VARIABLE_ASSIGNMENT_PATTERN;
-    String VARIABLE_OR_UNSIGNED_DIGIT = "(" + "\\d+" + "|" + VARIABLE + ")";
 
     private Deque<String> postFixEquation;
     ValuesStorage valuesStorage;
 
 
     Calculator() {
-        SIGNED_NUMBER_OR_VARIABLE = "(" + SIGNED_DIGIT + "|" + VARIABLE + ")";
+        UNSIGNED_NUMBER_OR_VARIABLE = "(" + "\\d+" + "|" + VARIABLE + ")";
+        UNSIGNED_NUMBER_OR_VARIABLE_PATTERN = Pattern.compile(UNSIGNED_NUMBER_OR_VARIABLE);
+
+        SIGNED_NUMBER_OR_VARIABLE = "(" + SIGNED_NUMBER + "|" + VARIABLE + ")";
         VARIABLE_ASSIGNMENT_PATTERN = Pattern.compile("\\s*" + VARIABLE + ASSIGNMENT + SIGNED_NUMBER_OR_VARIABLE);
 
         VARIABLE_PATTERN = Pattern.compile(VARIABLE);
-        SIGNED_NUMBER_PATTERN = Pattern.compile(SIGNED_DIGIT);
-        VARIABLE_OR_SIGNED_NUMBER_PATTERN = Pattern.compile(SIGNED_NUMBER_OR_VARIABLE);
+        SIGNED_NUMBER_PATTERN = Pattern.compile(SIGNED_NUMBER);
+        SIGNED_NUMBER_OR_VARIABLE_PATTERN = Pattern.compile(SIGNED_NUMBER_OR_VARIABLE);
 
         EXPRESSIONS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
         EXPRESSIONS_PATTERN = Pattern.compile(EXPRESSIONS);
+
         String EXPRESSIONS_NO_PARENTHESIS = "(" + HIGHER_EXPRESSIONS + "|" + LOWER_EXPRESSIONS + ")";
         EXPRESSIONS_NO_PARENTHESES_PATTERN = Pattern.compile(EXPRESSIONS_NO_PARENTHESIS);
 
@@ -68,7 +73,7 @@ public class Calculator {
         Deque<String> stack = new ArrayDeque<>();
 
         for (String token: InfixEquation) {
-            Matcher valueMatch = VARIABLE_OR_SIGNED_NUMBER_PATTERN.matcher(token);
+            Matcher valueMatch = SIGNED_NUMBER_OR_VARIABLE_PATTERN.matcher(token);
             Matcher expressionMatch = EXPRESSIONS_PATTERN.matcher(token);
             if (valueMatch.matches()) {
                 postFixEquation.offerLast(token); // add number or variable to result
@@ -110,15 +115,13 @@ public class Calculator {
         String infixNoSpaces = stripSpacesMultiplePlusesMinuses(userInput);
 
         String[] operandsHolder = infixNoSpaces.split(EXPRESSIONS + "+");
-        String VARIABLE_OR_UNSIGNED_DIGIT = "(" + "\\d+" + "|" + VARIABLE + ")";
         String[] operands = Arrays.stream(operandsHolder)
                 .filter(e -> {
-                    Pattern digits = Pattern.compile(VARIABLE_OR_UNSIGNED_DIGIT);
-                    Matcher matcher = digits.matcher(e);
+                    Matcher matcher = UNSIGNED_NUMBER_OR_VARIABLE_PATTERN.matcher(e);
                     return matcher.matches();})
                 .toArray(String[]::new);
 
-        String charHolder = infixNoSpaces.replaceAll(VARIABLE_OR_UNSIGNED_DIGIT, "");
+        String charHolder = infixNoSpaces.replaceAll(UNSIGNED_NUMBER_OR_VARIABLE, "");
         char[] operators = charHolder.toCharArray();
 
         String[] equation = new String[operators.length + operands.length];
@@ -187,7 +190,7 @@ public class Calculator {
 
         while (!postFixEquation.isEmpty()) {
             String token = postFixEquation.pollFirst();
-            Matcher matchNumberVariable = VARIABLE_OR_SIGNED_NUMBER_PATTERN.matcher(token);
+            Matcher matchNumberVariable = SIGNED_NUMBER_OR_VARIABLE_PATTERN.matcher(token);
             Matcher matchOperator = EXPRESSIONS_NO_PARENTHESES_PATTERN.matcher(token);
 
             // if variable or number, get value, push on stack
