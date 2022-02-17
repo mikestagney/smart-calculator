@@ -26,7 +26,6 @@ public class Calculator {
     private Deque<String> postFixEquation;
     ValuesStorage valuesStorage;
 
-
     Calculator() {
         UNSIGNED_NUMBER_OR_VARIABLE = "(" + "\\d+" + "|" + VARIABLE + ")";
         UNSIGNED_NUMBER_OR_VARIABLE_PATTERN = Pattern.compile(UNSIGNED_NUMBER_OR_VARIABLE);
@@ -114,16 +113,33 @@ public class Calculator {
     private String[] parseUserInput(String userInput) {
         String infixNoSpaces = stripSpacesMultiplePlusesMinuses(userInput);
 
+        String[] operands = extractOperands(infixNoSpaces);
+
+        char[] operators = extractOperators(infixNoSpaces);
+
+        return mergeArrays(operands, operators, infixNoSpaces);
+    }
+    private String stripSpacesMultiplePlusesMinuses(String userInput) {
+        return userInput
+                .replaceAll(" ", "")
+                .replaceAll("(\\+){2,}", "+")  //  .replaceAll("(\\+)\\1{2,}", "+")
+                .replaceAll("--", "+")
+                .replaceAll("\\+-|-\\+", "-")
+                .replaceAll("(\\+){2,}", "+");
+    }
+    private String[] extractOperands(String infixNoSpaces) {
         String[] operandsHolder = infixNoSpaces.split(EXPRESSIONS + "+");
-        String[] operands = Arrays.stream(operandsHolder)
+        return Arrays.stream(operandsHolder)
                 .filter(e -> {
                     Matcher matcher = UNSIGNED_NUMBER_OR_VARIABLE_PATTERN.matcher(e);
                     return matcher.matches();})
                 .toArray(String[]::new);
-
+    }
+    private char[] extractOperators(String infixNoSpaces) {
         String charHolder = infixNoSpaces.replaceAll(UNSIGNED_NUMBER_OR_VARIABLE, "");
-        char[] operators = charHolder.toCharArray();
-
+        return charHolder.toCharArray();
+    }
+    private String[] mergeArrays(String[] operands, char[] operators, String infixNoSpaces) {
         String[] equation = new String[operators.length + operands.length];
 
         int operatorCounter = 0;
@@ -142,14 +158,6 @@ public class Calculator {
             }
         }
         return equation;
-    }
-    private String stripSpacesMultiplePlusesMinuses(String userInput) {
-        return userInput
-                .replaceAll(" ", "")
-                .replaceAll("(\\+){2,}", "+")  //  .replaceAll("(\\+)\\1{2,}", "+")
-                .replaceAll("--", "+")
-                .replaceAll("\\+-|-\\+", "-")
-                .replaceAll("(\\+){2,}", "+");
     }
 
     private boolean higherPrecedenceNewOperator(String oldOperator, String newOperator) {
