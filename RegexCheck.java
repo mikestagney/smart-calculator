@@ -9,20 +9,22 @@ public class RegexCheck {
     private final String VARIABLE = "[A-Za-z]+\\s*";
     private final String LOWER_EXPRESSIONS = "(\\++|-+)";
     private final String HIGHER_EXPRESSIONS = "(/|\\*)";
-    private final String PARENTHESIS_EXPRESSIONS = "(\\(|\\))";
-    public final String EXPRESSIONS;
+    private final String PARENTHESIS = "(\\(|\\))";
+    private final String OPERATORS_PARENTHESIS;
     private final String ASSIGNMENT = "=\\s*";
     private final String SIGNED_NUMBER_OR_VARIABLE;
-    public final String UNSIGNED_NUMBER_OR_VARIABLE;
+    private final String UNSIGNED_NUMBER_OR_VARIABLE;
     private final Pattern VARIABLE_PATTERN;
     private final Pattern SIGNED_NUMBER_PATTERN;
     private final Pattern SIGNED_NUMBER_OR_VARIABLE_PATTERN;
     private final Pattern UNSIGNED_NUMBER_OR_VARIABLE_PATTERN;
-    private final Pattern EXPRESSIONS_PATTERN;
-    private final Pattern EXPRESSIONS_NO_PARENTHESES_PATTERN;
+    private final Pattern OPERATORS_PARENTHESIS_PATTERN;
+    private final Pattern OPERATORS_NO_PARENTHESES_PATTERN;
     private final Pattern VARIABLE_ASSIGNMENT_PATTERN;
 
-    RegexCheck() {
+    private static RegexCheck instance;
+
+    private RegexCheck() {
         UNSIGNED_NUMBER_OR_VARIABLE = "(" + "\\d+" + "|" + VARIABLE + ")";
         UNSIGNED_NUMBER_OR_VARIABLE_PATTERN = Pattern.compile(UNSIGNED_NUMBER_OR_VARIABLE);
 
@@ -33,12 +35,26 @@ public class RegexCheck {
         SIGNED_NUMBER_PATTERN = Pattern.compile(SIGNED_NUMBER);
         SIGNED_NUMBER_OR_VARIABLE_PATTERN = Pattern.compile(SIGNED_NUMBER_OR_VARIABLE);
 
-        EXPRESSIONS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
-        EXPRESSIONS_PATTERN = Pattern.compile(EXPRESSIONS);
+        OPERATORS_PARENTHESIS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS + ")";
+        OPERATORS_PARENTHESIS_PATTERN = Pattern.compile(OPERATORS_PARENTHESIS);
 
-        String EXPRESSIONS_NO_PARENTHESIS = "(" + HIGHER_EXPRESSIONS + "|" + LOWER_EXPRESSIONS + ")";
-        EXPRESSIONS_NO_PARENTHESES_PATTERN = Pattern.compile(EXPRESSIONS_NO_PARENTHESIS);
+        String OPERATORS_NO_PARENTHESIS = "(" + HIGHER_EXPRESSIONS + "|" + LOWER_EXPRESSIONS + ")";
+        OPERATORS_NO_PARENTHESES_PATTERN = Pattern.compile(OPERATORS_NO_PARENTHESIS);
 
+    }
+    public static RegexCheck getInstance() {
+        if (instance == null) {
+            instance = new RegexCheck();
+        }
+        return instance;
+    }
+    public boolean isVariable(String token) {
+        Matcher variableMatcher = VARIABLE_PATTERN.matcher(token);
+        return variableMatcher.matches();
+    }
+    public boolean isSignedNumber(String token) {
+        Matcher numberMatcher = SIGNED_NUMBER_PATTERN.matcher(token);
+        return numberMatcher.matches();
     }
 
     public boolean isVariableAssignment(String userInput) {
@@ -51,8 +67,8 @@ public class RegexCheck {
         return valueMatch.matches();
     }
 
-    public boolean isExpression(String token) {
-        Matcher expressionMatch = EXPRESSIONS_PATTERN.matcher(token);
+    public boolean isOperator(String token) {
+        Matcher expressionMatch = OPERATORS_PARENTHESIS_PATTERN.matcher(token);
         return expressionMatch.matches();
     }
 
@@ -61,9 +77,14 @@ public class RegexCheck {
         return matcher.matches();
     }
     public boolean isExpressionNoParentheses(String token) {
-        Matcher expressionMatch = EXPRESSIONS_NO_PARENTHESES_PATTERN.matcher(token);
+        Matcher expressionMatch = OPERATORS_NO_PARENTHESES_PATTERN.matcher(token);
         return expressionMatch.matches();
     }
-
+    public String getOPERATORS_PARENTHESIS() {
+        return OPERATORS_PARENTHESIS;
+    }
+    public String getUNSIGNED_NUMBER_OR_VARIABLE() {
+        return UNSIGNED_NUMBER_OR_VARIABLE;
+    }
 
 }

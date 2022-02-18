@@ -9,7 +9,7 @@ public class Calculator {
     ValuesStorage valuesStorage;
 
     Calculator() {
-        regexCheck = new RegexCheck();
+        regexCheck = RegexCheck.getInstance();
         valuesStorage = new ValuesStorage();
     }
 
@@ -40,7 +40,7 @@ public class Calculator {
         for (String token: InfixEquation) {
             if (regexCheck.isSignedNumberOrVariable(token)) {
                 postFixEquation.offerLast(token); // add number or variable to result
-            } else if (regexCheck.isExpression(token)) {
+            } else if (regexCheck.isOperator(token)) {
                 String topStackItem = stack.peekLast();
                 if (topStackItem != null && token.equals(")")) {
                     while (stack.peekLast() != null && !stack.peekLast().equals("(")) {
@@ -90,13 +90,13 @@ public class Calculator {
                 .replaceAll("(\\+){2,}", "+");
     }
     private String[] extractOperands(String infixNoSpaces) {
-        String[] operandsHolder = infixNoSpaces.split(regexCheck.EXPRESSIONS + "+");
+        String[] operandsHolder = infixNoSpaces.split(regexCheck.getOPERATORS_PARENTHESIS() + "+");
         return Arrays.stream(operandsHolder)
                 .filter(e -> regexCheck.isUnsignedNumberOrVariable(e))
                 .toArray(String[]::new);
     }
     private char[] extractOperators(String infixNoSpaces) {
-        String charHolder = infixNoSpaces.replaceAll(regexCheck.UNSIGNED_NUMBER_OR_VARIABLE, "");
+        String charHolder = infixNoSpaces.replaceAll(regexCheck.getUNSIGNED_NUMBER_OR_VARIABLE(), "");
         return charHolder.toCharArray();
     }
     private String[] createInfixEquation(String[] operands, char[] operators, String infixNoSpaces) {
@@ -158,9 +158,8 @@ public class Calculator {
 
         while (!postFixEquation.isEmpty()) {
             String token = postFixEquation.pollFirst();
-
-            // if variable or number, get value, push on stack
             Integer currentResult = null;
+
             if (regexCheck.isSignedNumberOrVariable(token)) {
                 currentResult = valuesStorage.getValue(token);
             } else if (regexCheck.isExpressionNoParentheses(token)) {
