@@ -53,7 +53,7 @@ public class Calculator {
                         stack.pollLast();
                         continue; // right parenthesis is the token, so don't add it to postFixEquation
                     } else {
-                        // equation has no matching left parenthesis, so
+                        // equation has no matching left parenthesis, so add one and break loop - evalutatePostFix() will catch error
                         postFixEquation.offerLast("(");
                         stack.clear();
                         break;
