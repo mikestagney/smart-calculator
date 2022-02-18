@@ -1,48 +1,15 @@
 package calculator;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Calculator {
 
-    private final String SIGNED_NUMBER = "[+-]?\\d+\\s*";
-    private final String VARIABLE = "[A-Za-z]+\\s*";
-    private final String LOWER_EXPRESSIONS = "(\\++|-+)";
-    private final String HIGHER_EXPRESSIONS = "(/|\\*)";
-    private final String PARENTHESIS_EXPRESSIONS = "(\\(|\\))";
-    private final String EXPRESSIONS;
-    private final String ASSIGNMENT = "=\\s*";
-    private final String SIGNED_NUMBER_OR_VARIABLE;
-    private final String UNSIGNED_NUMBER_OR_VARIABLE;
-    private final Pattern VARIABLE_PATTERN;
-    private final Pattern SIGNED_NUMBER_PATTERN;
-    private final Pattern SIGNED_NUMBER_OR_VARIABLE_PATTERN;
-    private final Pattern UNSIGNED_NUMBER_OR_VARIABLE_PATTERN;
-    private final Pattern EXPRESSIONS_PATTERN;
-    private final Pattern EXPRESSIONS_NO_PARENTHESES_PATTERN;
-    private final Pattern VARIABLE_ASSIGNMENT_PATTERN;
-
+    RegexCheck regexCheck;
     private Deque<String> postFixEquation;
     ValuesStorage valuesStorage;
 
     Calculator() {
-        UNSIGNED_NUMBER_OR_VARIABLE = "(" + "\\d+" + "|" + VARIABLE + ")";
-        UNSIGNED_NUMBER_OR_VARIABLE_PATTERN = Pattern.compile(UNSIGNED_NUMBER_OR_VARIABLE);
-
-        SIGNED_NUMBER_OR_VARIABLE = "(" + SIGNED_NUMBER + "|" + VARIABLE + ")";
-        VARIABLE_ASSIGNMENT_PATTERN = Pattern.compile("\\s*" + VARIABLE + ASSIGNMENT + SIGNED_NUMBER_OR_VARIABLE);
-
-        VARIABLE_PATTERN = Pattern.compile(VARIABLE);
-        SIGNED_NUMBER_PATTERN = Pattern.compile(SIGNED_NUMBER);
-        SIGNED_NUMBER_OR_VARIABLE_PATTERN = Pattern.compile(SIGNED_NUMBER_OR_VARIABLE);
-
-        EXPRESSIONS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS_EXPRESSIONS + ")";
-        EXPRESSIONS_PATTERN = Pattern.compile(EXPRESSIONS);
-
-        String EXPRESSIONS_NO_PARENTHESIS = "(" + HIGHER_EXPRESSIONS + "|" + LOWER_EXPRESSIONS + ")";
-        EXPRESSIONS_NO_PARENTHESES_PATTERN = Pattern.compile(EXPRESSIONS_NO_PARENTHESIS);
-
+        regexCheck = new RegexCheck();
         valuesStorage = new ValuesStorage();
     }
 
@@ -52,8 +19,7 @@ public class Calculator {
             return;
         }
         Integer currentResult;
-        Matcher assignmentMatcher = VARIABLE_ASSIGNMENT_PATTERN.matcher(userInput);
-        if (assignmentMatcher.matches()) {
+        if (regexCheck.isVariableAssignment(userInput)) {
             valuesStorage.addVariable(userInput);
         } else {
            postFixConverter(userInput);
@@ -66,17 +32,15 @@ public class Calculator {
         }
     }
     private void postFixConverter(String userInput) {
-        String[] InfixEquation = parseUserInput(userInput);
+        String[] InfixEquation = tokenizeUserInput(userInput);
 
         postFixEquation = new ArrayDeque<>();
         Deque<String> stack = new ArrayDeque<>();
 
         for (String token: InfixEquation) {
-            Matcher valueMatch = SIGNED_NUMBER_OR_VARIABLE_PATTERN.matcher(token);
-            Matcher expressionMatch = EXPRESSIONS_PATTERN.matcher(token);
-            if (valueMatch.matches()) {
+            if (regexCheck.isSignedNumberOrVariable(token)) {
                 postFixEquation.offerLast(token); // add number or variable to result
-            } else if (expressionMatch.matches()) {
+            } else if (regexCheck.isExpression(token)) {
                 String topStackItem = stack.peekLast();
                 if (topStackItem != null && token.equals(")")) {
                     while (stack.peekLast() != null && !stack.peekLast().equals("(")) {
@@ -110,36 +74,32 @@ public class Calculator {
             postFixEquation.addLast(stack.pollLast());
         }
     }
-    private String[] parseUserInput(String userInput) {
-        String infixNoSpaces = stripSpacesMultiplePlusesMinuses(userInput);
+    private String[] tokenizeUserInput(String userInput) {
+        String infixNormalized = normalizeInput(userInput);
+        String[] operands = extractOperands(infixNormalized);
+        char[] operators = extractOperators(infixNormalized);
 
-        String[] operands = extractOperands(infixNoSpaces);
-
-        char[] operators = extractOperators(infixNoSpaces);
-
-        return mergeArrays(operands, operators, infixNoSpaces);
+        return createInfixEquation(operands, operators, infixNormalized);
     }
-    private String stripSpacesMultiplePlusesMinuses(String userInput) {
+    private String normalizeInput(String userInput) {
         return userInput
                 .replaceAll(" ", "")
-                .replaceAll("(\\+){2,}", "+")  //  .replaceAll("(\\+)\\1{2,}", "+")
+                .replaceAll("(\\+){2,}", "+")
                 .replaceAll("--", "+")
                 .replaceAll("\\+-|-\\+", "-")
                 .replaceAll("(\\+){2,}", "+");
     }
     private String[] extractOperands(String infixNoSpaces) {
-        String[] operandsHolder = infixNoSpaces.split(EXPRESSIONS + "+");
+        String[] operandsHolder = infixNoSpaces.split(regexCheck.EXPRESSIONS + "+");
         return Arrays.stream(operandsHolder)
-                .filter(e -> {
-                    Matcher matcher = UNSIGNED_NUMBER_OR_VARIABLE_PATTERN.matcher(e);
-                    return matcher.matches();})
+                .filter(e -> regexCheck.isUnsignedNumberOrVariable(e))
                 .toArray(String[]::new);
     }
     private char[] extractOperators(String infixNoSpaces) {
-        String charHolder = infixNoSpaces.replaceAll(UNSIGNED_NUMBER_OR_VARIABLE, "");
+        String charHolder = infixNoSpaces.replaceAll(regexCheck.UNSIGNED_NUMBER_OR_VARIABLE, "");
         return charHolder.toCharArray();
     }
-    private String[] mergeArrays(String[] operands, char[] operators, String infixNoSpaces) {
+    private String[] createInfixEquation(String[] operands, char[] operators, String infixNoSpaces) {
         String[] equation = new String[operators.length + operands.length];
 
         int operatorCounter = 0;
@@ -198,14 +158,12 @@ public class Calculator {
 
         while (!postFixEquation.isEmpty()) {
             String token = postFixEquation.pollFirst();
-            Matcher matchNumberVariable = SIGNED_NUMBER_OR_VARIABLE_PATTERN.matcher(token);
-            Matcher matchOperator = EXPRESSIONS_NO_PARENTHESES_PATTERN.matcher(token);
 
             // if variable or number, get value, push on stack
             Integer currentResult = null;
-            if (matchNumberVariable.matches()) {
+            if (regexCheck.isSignedNumberOrVariable(token)) {
                 currentResult = valuesStorage.getValue(token);
-            } else if (matchOperator.matches()) {
+            } else if (regexCheck.isExpressionNoParentheses(token)) {
                 try {
                     Integer secondOperand = stack.pollLast();
                     Integer firstOperand = stack.pollLast();
