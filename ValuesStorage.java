@@ -11,7 +11,8 @@ public class ValuesStorage {
         variableStore = new HashMap<>();
         regexCheck = RegexCheck.getInstance();
     }
-    public void addVariable(String userInput) {
+    public boolean addVariable(String userInput) {
+        boolean isAdded = false;
         userInput = userInput
                 .replaceAll("\\s+", "")
                 .replace('=', ' ');
@@ -19,8 +20,11 @@ public class ValuesStorage {
         String key = assignment[0];
         Integer value = getValue(assignment[assignment.length - 1]);
         if (value != null) {
-            variableStore.put(key, value);
+             variableStore.put(key, value);
+             isAdded = true;
+
         }
+        return isAdded;
     }
     public Integer getValue(String item) {
         Integer value = null;

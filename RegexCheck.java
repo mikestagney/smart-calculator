@@ -7,8 +7,7 @@ public class RegexCheck {
 
     private final String SIGNED_NUMBER = "[+-]?\\d+\\s*";
     private final String VARIABLE = "[A-Za-z]+\\s*";
-    private final String LOWER_EXPRESSIONS = "(\\++|-+)";
-    private final String HIGHER_EXPRESSIONS = "(/|\\*)";
+    private final String OPERATORS = "(\\++|-+|/|\\*)";
     private final String PARENTHESIS = "(\\(|\\))";
     private final String OPERATORS_PARENTHESIS;
     private final String ASSIGNMENT = "=\\s*";
@@ -35,12 +34,10 @@ public class RegexCheck {
         SIGNED_NUMBER_PATTERN = Pattern.compile(SIGNED_NUMBER);
         SIGNED_NUMBER_OR_VARIABLE_PATTERN = Pattern.compile(SIGNED_NUMBER_OR_VARIABLE);
 
-        OPERATORS_PARENTHESIS = "(" + LOWER_EXPRESSIONS + "|" + HIGHER_EXPRESSIONS + "|" + PARENTHESIS + ")";
+        OPERATORS_PARENTHESIS = "(" + OPERATORS + "|" + PARENTHESIS + ")";
         OPERATORS_PARENTHESIS_PATTERN = Pattern.compile(OPERATORS_PARENTHESIS);
 
-        String OPERATORS_NO_PARENTHESIS = "(" + HIGHER_EXPRESSIONS + "|" + LOWER_EXPRESSIONS + ")";
-        OPERATORS_NO_PARENTHESES_PATTERN = Pattern.compile(OPERATORS_NO_PARENTHESIS);
-
+        OPERATORS_NO_PARENTHESES_PATTERN = Pattern.compile(OPERATORS);
     }
     public static RegexCheck getInstance() {
         if (instance == null) {

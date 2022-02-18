@@ -20,7 +20,9 @@ public class Calculator {
         }
         Integer currentResult;
         if (regexCheck.isVariableAssignment(userInput)) {
-            valuesStorage.addVariable(userInput);
+            if (!valuesStorage.addVariable(userInput)) {
+                handleError(userInput);
+            }
         } else {
            postFixConverter(userInput);
            currentResult = evaluatePostFixEquation();
