@@ -64,18 +64,18 @@ public class RegexCheck {
         return valueMatch.matches();
     }
 
-    public boolean isOperator(String token) {
-        Matcher expressionMatch = OPERATORS_PARENTHESIS_PATTERN.matcher(token);
-        return expressionMatch.matches();
+    public boolean isOperatorOrParenthesis(String token) {
+        Matcher operatorParenthesisMatch = OPERATORS_PARENTHESIS_PATTERN.matcher(token);
+        return operatorParenthesisMatch.matches();
     }
 
     public boolean isUnsignedNumberOrVariable(String token) {
         Matcher matcher = UNSIGNED_NUMBER_OR_VARIABLE_PATTERN.matcher(token);
         return matcher.matches();
     }
-    public boolean isExpressionNoParentheses(String token) {
-        Matcher expressionMatch = OPERATORS_NO_PARENTHESES_PATTERN.matcher(token);
-        return expressionMatch.matches();
+    public boolean isOperatorNoParentheses(String token) {
+        Matcher operatorMatch = OPERATORS_NO_PARENTHESES_PATTERN.matcher(token);
+        return operatorMatch.matches();
     }
     public String getOPERATORS_PARENTHESIS() {
         return OPERATORS_PARENTHESIS;
