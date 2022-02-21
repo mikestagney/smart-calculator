@@ -21,7 +21,7 @@ public class PostfixConverter {
 
         for (String token: InfixEquation) {
             if (regexCheck.isSignedNumberOrVariable(token)) {
-                postFixEquation.offerLast(token); // add number or variable to result
+                postFixEquation.offerLast(token);
             } else if (regexCheck.isOperatorOrParenthesis(token)) {
                 String topStackItem = stack.peekLast();
                 if (topStackItem != null && token.equals(")")) {
@@ -62,7 +62,7 @@ public class PostfixConverter {
         String[] operands = extractOperands(infixNormalized);
         char[] operators = extractOperators(infixNormalized);
 
-        return createInfixEquation(operands, operators, infixNormalized);
+        return mergeOperandsOperators(operands, operators, infixNormalized);
     }
     private String normalizeInput(String userInput) {
         return userInput
@@ -75,14 +75,14 @@ public class PostfixConverter {
     private String[] extractOperands(String infixNoSpaces) {
         String[] operandsHolder = infixNoSpaces.split(regexCheck.getOPERATORS_PARENTHESIS() + "+");
         return Arrays.stream(operandsHolder)
-                .filter(e -> regexCheck.isUnsignedNumberOrVariable(e))
+                .filter(operand -> regexCheck.isUnsignedNumberOrVariable(operand))
                 .toArray(String[]::new);
     }
     private char[] extractOperators(String infixNoSpaces) {
         String charHolder = infixNoSpaces.replaceAll(regexCheck.getUNSIGNED_NUMBER_OR_VARIABLE(), "");
         return charHolder.toCharArray();
     }
-    private String[] createInfixEquation(String[] operands, char[] operators, String infixNoSpaces) {
+    private String[] mergeOperandsOperators(String[] operands, char[] operators, String infixNoSpaces) {
         String[] equation = new String[operators.length + operands.length];
 
         int operatorCounter = 0;
