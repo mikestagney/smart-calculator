@@ -27,20 +27,20 @@ public class Calculator {
             }
         } else {
            postFixEquation = postfixConverter.infixToPostfix(userInput);
-           currentResult = evaluatePostFixEquation();
-           if (currentResult != null) {
-            System.out.println(currentResult);
-            } else {
-                handleError(userInput);
+           if (postFixEquation.isEmpty()) {
+               handleError(userInput);
+           } else {
+                currentResult = evaluatePostFixEquation();
+                if (currentResult != null) {
+                    System.out.println(currentResult);
+                } else {
+                    handleError(userInput);
+                }
             }
         }
     }
 
     private Integer evaluatePostFixEquation() {
-        if (postFixEquation.contains("(")) {
-            return null;
-        }
-
         Integer finalResult;
         Deque<Integer> stack = new ArrayDeque<>();
 

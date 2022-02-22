@@ -8,6 +8,7 @@ public class PostfixConverter {
 
     private Deque<String> postFixEquation;
     RegexCheck regexCheck;
+    private final String LEFT_PARENTHESIS = "(";
 
     PostfixConverter() {
         regexCheck = RegexCheck.getInstance();
@@ -25,22 +26,22 @@ public class PostfixConverter {
             } else if (regexCheck.isOperatorOrParenthesis(token)) {
                 String topStackItem = stack.peekLast();
                 if (topStackItem != null && token.equals(")")) {
-                    while (stack.peekLast() != null && !stack.peekLast().equals("(")) {
+                    while (stack.peekLast() != null && !stack.peekLast().equals(LEFT_PARENTHESIS)) {
                         postFixEquation.offerLast(stack.pollLast());
                     }
-                    if (stack.peekLast() != null && stack.peekLast().equals("(")) {
+                    if (stack.peekLast() != null && stack.peekLast().equals(LEFT_PARENTHESIS)) {
                         // remove left parenthesis from stack and discard
                         stack.pollLast();
                         continue; // right parenthesis is the token, so don't add it to postFixEquation
                     } else {
-                        // equation has no matching left parenthesis, so add one and break loop - evalutatePostFix() will catch error
-                        postFixEquation.offerLast("(");
+                        // equation has no matching left parenthesis, so add one and break loop
+                        postFixEquation.offerLast(LEFT_PARENTHESIS);
                         stack.clear();
                         break;
                     }
                 }
-                if (stack.size() > 0 && !higherPrecedenceNewOperator(topStackItem, token) && !"(".equals(topStackItem)) {
-                    while (stack.size() > 0 && !stack.peekLast().equals("(")) {
+                if (stack.size() > 0 && !higherPrecedenceNewOperator(topStackItem, token) && !LEFT_PARENTHESIS.equals(topStackItem)) {
+                    while (stack.size() > 0 && !stack.peekLast().equals(LEFT_PARENTHESIS)) {
                         if (!lowerPrecedenceNewOperator(topStackItem, token)) {
                             postFixEquation.offerLast(stack.pollLast());
                             break;
@@ -54,6 +55,9 @@ public class PostfixConverter {
         }
         while (stack.size() > 0) {
             postFixEquation.addLast(stack.pollLast());
+        }
+        if (postFixEquation.contains(LEFT_PARENTHESIS)) {
+            postFixEquation.clear();
         }
         return postFixEquation;
     }
