@@ -1,5 +1,6 @@
 package calculator;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class Calculator {
@@ -20,7 +21,7 @@ public class Calculator {
             System.out.println("Unknown command");
             return;
         }
-        Integer currentResult;
+        BigInteger currentResult;
         if (regexCheck.isVariableAssignment(userInput)) {
             if (!valuesStorage.addVariable(userInput)) {
                 handleError(userInput);
@@ -40,20 +41,20 @@ public class Calculator {
         }
     }
 
-    private Integer evaluatePostFixEquation() {
-        Integer finalResult;
-        Deque<Integer> stack = new ArrayDeque<>();
+    private BigInteger evaluatePostFixEquation() {
+        BigInteger finalResult;
+        Deque<BigInteger> stack = new ArrayDeque<>();
 
         while (!postFixEquation.isEmpty()) {
             String token = postFixEquation.pollFirst();
-            Integer currentResult = null;
+            BigInteger currentResult = null;
 
             if (regexCheck.isSignedNumberOrVariable(token)) {
                 currentResult = valuesStorage.getValue(token);
             } else if (regexCheck.isOperatorNoParentheses(token)) {
                 try {
-                    Integer secondOperand = stack.pollLast();
-                    Integer firstOperand = stack.pollLast();
+                    BigInteger secondOperand = stack.pollLast();
+                    BigInteger firstOperand = stack.pollLast();
                     currentResult = performOperation(firstOperand, secondOperand, token);
                 } catch (Exception e) {
                     return null;
@@ -69,21 +70,21 @@ public class Calculator {
         return finalResult;
     }
 
-    private Integer performOperation(Integer op1, Integer op2, String operator) {
-        Integer result = null;
+    private BigInteger performOperation(BigInteger op1, BigInteger op2, String operator) {
+        BigInteger result = null;
         try {
             switch (operator) {
                 case "+":
-                    result = op1 + op2;
+                    result = op1.add(op2);
                     break;
                 case "-":
-                    result = op1 - op2;
+                    result = op1.subtract(op2);
                     break;
                 case "*":
-                    result = op1 * op2;
+                    result = op1.multiply(op2);
                     break;
                 case "/":
-                    result = op1 / op2;
+                    result = op1.divide(op2);
                     break;
             }
         } catch (Exception ignored) {
