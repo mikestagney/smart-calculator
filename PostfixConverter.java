@@ -77,13 +77,13 @@ public class PostfixConverter {
                 .replaceAll("(\\+){2,}", "+");
     }
     private String[] extractOperands(String infixNoSpaces) {
-        String[] operandsHolder = infixNoSpaces.split(regexCheck.getOPERATORS_PARENTHESIS() + "+");
+        String[] operandsHolder = infixNoSpaces.split(regexCheck.getOPERATORS_PARENTHESIS_regex() + "+");
         return Arrays.stream(operandsHolder)
                 .filter(operand -> regexCheck.isUnsignedNumberOrVariable(operand))
                 .toArray(String[]::new);
     }
     private char[] extractOperators(String infixNoSpaces) {
-        String charHolder = infixNoSpaces.replaceAll(regexCheck.getUNSIGNED_NUMBER_OR_VARIABLE(), "");
+        String charHolder = infixNoSpaces.replaceAll(regexCheck.getUNSIGNED_NUMBER_OR_VARIABLE_regex(), "");
         return charHolder.toCharArray();
     }
     private String[] mergeOperandsOperators(String[] operands, char[] operators, String infixNoSpaces) {

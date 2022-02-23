@@ -77,10 +77,10 @@ public class RegexCheck {
         Matcher operatorMatch = OPERATORS_NO_PARENTHESES_PATTERN.matcher(token);
         return operatorMatch.matches();
     }
-    public String getOPERATORS_PARENTHESIS() {
+    public String getOPERATORS_PARENTHESIS_regex() {
         return OPERATORS_PARENTHESIS;
     }
-    public String getUNSIGNED_NUMBER_OR_VARIABLE() {
+    public String getUNSIGNED_NUMBER_OR_VARIABLE_regex() {
         return UNSIGNED_NUMBER_OR_VARIABLE;
     }
 
